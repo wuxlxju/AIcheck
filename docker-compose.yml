@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: aicheck-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://aicheck:password@db:5432/aicheck
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - MAIL_SERVER=${MAIL_SERVER}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/pdf_reports:/app/pdf_reports
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: aicheck-db
+    environment:
+      - POSTGRES_USER=aicheck
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=aicheck
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: aicheck-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
